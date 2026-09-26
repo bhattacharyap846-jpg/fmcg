@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreamz - Wholesale Catalog & Order Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        body { background-color: #fffafb; color: #4a1c26; overflow-x: hidden; }
+
+        header { background-color: #ff3864; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(255, 56, 100, 0.2); }
+        .menu-btn, .cart-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .logo { color: white; text-align: center; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .logo-img { height: 48px; width: 48px; border-radius: 50%; object-fit: cover; background: white; flex-shrink: 0; }
+        .cart-btn { position: relative; }
+        .cart-badge { position: absolute; top: -5px; right: -8px; background: #ffd700; color: #000; font-size: 12px; font-weight: bold; border-radius: 50%; padding: 2px 6px; }
+
+        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background-color: #ff3864; transition: 0.3s ease; z-index: 1000; padding: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
+        .sidebar.active { left: 0; }
+        .close-btn { background: none; border: none; color: white; font-size: 30px; cursor: pointer; float: right; margin-bottom: 20px; }
+        .sidebar-links { list-style: none; clear: both; margin-top: 50px; }
+        .sidebar-links li { margin-bottom: 20px; }
+        .sidebar-links a { color: white; text-decoration: none; font-size: 1.2rem; font-weight: 600; display: block; }
+
+        .category-container { padding: 20px; overflow-x: auto; white-space: nowrap; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; margin-top: 10px; }
+        .category-btn { background: #ffe3e9; color: #ff3864; border: 2px solid transparent; padding: 10px 20px; border-radius: 30px; margin-right: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .category-btn.active, .category-btn:hover { background: #ff3864; color: white; }
+
+        .products-section { padding: 0 20px 40px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-title { color: #7b1e34; margin-bottom: 20px; font-size: 1.5rem; border-bottom: 2px solid #ff3864; display: inline-block; padding-bottom: 5px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        @media (min-width: 768px) { .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; } }
+
+        .product-card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; border: 1px solid #ffe3e9; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-img { width: 100%; height: 140px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; color: #ccc; }
+        .product-name { font-size: 0.95rem; font-weight: 600; color: #4a1c26; margin-bottom: 8px; line-height: 1.3; }
+        .product-price { color: #ff3864; font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; }
+
+        .search-box { padding: 0 20px 20px 20px; max-width: 1200px; margin: 0 auto; }
+        #search-input { width: 100%; padding: 12px 15px; border-radius: 30px; border: 1px solid #ff3864; outline: none; font-size: 1rem; color: #4a1c26; }
+        #search-input::placeholder { color: #c98a95; }
+        
+        .add-cart-btn { background: #ff3864; color: white; border: none; padding: 8px; border-radius: 8px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .add-cart-btn:active { transform: scale(0.95); }
+
+        .cart-modal { position: fixed; top: 0; right: -400px; width: 100%; max-width: 350px; height: 100vh; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: 0.3s ease; z-index: 1000; display: flex; flex-direction: column; }
+        .cart-modal.active { right: 0; }
+        .cart-header { background: #ff3864; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .cart-items-container { padding: 20px; flex-grow: 1; overflow-y: auto; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .cart-item-info h4 { font-size: 0.9rem; color: #4a1c26; margin-bottom: 3px;}
+        .cart-item-info p { color: #ff3864; font-weight: bold; font-size: 0.85rem;}
+        .cart-footer { padding: 20px; background: #fffafb; border-top: 1px solid #eee; }
+        .total-box { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color:#7b1e34;}
+        .checkout-btn { background: #28a745; color: white; width: 100%; padding: 12px; border:none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor:pointer; }
+        
+        .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; padding: 15px; }
+        .modal-box { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        <div class="logo">
+            <img src="https://img.sanishtech.com/u/66f92182f6981211366f419ef1f32c80.webp" alt="Kreamz Logo" class="logo-img">
+            <div>
+                <span id="user-status-display" style="font-size: 0.75rem; opacity: 0.9;">Mode: Guest User</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="toggleAuthModal()" class="bg-white text-[#ff3864] px-3 py-1.5 rounded-full text-xs font-bold shadow">Login</button>
+            <button class="cart-btn" onclick="toggleCart()">🛒 <span class="cart-badge" id="cart-count">0</span></button>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleMenu()">×</button>
+        <ul class="sidebar-links" id="sidebar-links-container"></ul>
+    </div>
+
+    <!-- Admin Toolbar -->
+    <div id="admin-toolbar" class="hidden bg-pink-100 px-5 py-3 border-b border-pink-200 flex flex-wrap justify-between items-center gap-2">
+        <span id="admin-badge-text" class="text-xs font-bold text-[#ff3864]">Administrator Mode Active</span>
+        <div class="flex gap-2">
+            <button onclick="openAddProductModal()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-semibold shadow">
+                <i class="fa-solid fa-plus mr-1"></i> Add Product
+            </button>
+            <button onclick="openAddCategoryModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-xs font-semibold shadow">
+                <i class="fa-solid fa-folder-plus mr-1"></i> New Category
+            </button>
+        </div>
+    </div>
+
+    <!-- Master Admin Panel -->
+    <div id="master-admin-panel" class="hidden bg-amber-50 border-b border-amber-200 p-4 max-w-7xl mx-auto my-3 rounded-xl shadow-sm text-xs space-y-3">
+        <h3 class="font-bold text-amber-800"><i class="fa-solid fa-shield-halved mr-1"></i> Master Admin Controls</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+                <p class="font-semibold text-gray-700">Create New Sub-Admin Account</p>
+                <div class="flex gap-2">
+                    <input type="text" id="new-admin-user" placeholder="Username" class="p-1.5 border rounded flex-1">
+                    <input type="password" id="new-admin-pass" placeholder="Password" class="p-1.5 border rounded flex-1">
+                    <button onclick="addNewAdmin()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded font-semibold">Add</button>
+                </div>
+                <div id="master-msg" class="font-medium"></div>
+            </div>
+            <div class="space-y-2">
+                <p class="font-semibold text-gray-700">Change Master Password</p>
+                <div class="flex gap-2">
+                    <input type="password" id="master-new-pass" placeholder="New Master Password" class="p-1.5 border rounded flex-1">
+                    <button onclick="changeMasterPassword()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded font-semibold">Update</button>
+                </div>
+                <div id="master-pass-msg" class="font-medium"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="category-container" id="category-tabs"></div>
+
+    <!-- Search Bar -->
+    <div class="search-box">
+        <input type="text" id="search-input" placeholder="Search items or brands..." oninput="filterProducts()">
+    </div>
+
+    <!-- Products Section -->
+    <div class="products-section">
+        <h2 class="section-title" id="current-category-title">Catalog</h2>
+        <div class="grid" id="product-grid"></div>
+        <div id="empty-state" class="hidden text-center py-16 text-gray-400">
+            <i class="fa-solid fa-box-open text-4xl mb-3"></i>
+            <p>No products found matching your search.</p>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div class="cart-modal" id="cart-modal">
+        <div class="cart-header">
+            <h2>Order Cart</h2>
+            <button class="close-btn" style="margin:0;" onclick="toggleCart()">×</button>
+        </div>
+        <div class="cart-items-container" id="cart-items"></div>
+        <div class="cart-footer">
+            <div class="total-box"><span>Total Billing Value:</span><span id="cart-total">₹0</span></div>
+            <button class="checkout-btn" onclick="checkoutOrder()">Export / Print Order</button>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="overlay" id="auth-modal">
+        <div class="modal-box">
+            <div class="flex justify-between items-center pb-3 border-b mb-4">
+                <h3 class="font-bold text-gray-900 text-lg">Authentication Portal</h3>
+                <button onclick="toggleAuthModal()" class="text-gray-400 text-xl font-bold">&times;</button>
+            </div>
+            <div class="flex rounded-lg bg-gray-100 p-1 mb-4 text-xs font-semibold">
+                <button onclick="switchAuthTab('admin')" id="tab-admin" class="flex-1 py-2 rounded transition bg-white text-[#ff3864] shadow-sm">Admin / Master Login</button>
+                <button onclick="switchAuthTab('user')" id="tab-user" class="flex-1 py-2 rounded transition text-gray-600">User Signup / Login</button>
+            </div>
+            <div id="form-admin" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Username</label>
+                    <input type="text" id="admin-user-input" class="w-full p-2 border rounded" placeholder="Enter username">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Password</label>
+                    <input type="password" id="admin-pass-input" class="w-full p-2 border rounded" placeholder="Enter password">
+                </div>
+                <button onclick="loginAdmin()" class="w-full bg-[#ff3864] text-white py-2.5 rounded font-bold shadow">Login as Admin</button>
+            </div>
+            <div id="form-user" class="space-y-3 text-xs hidden">
+                <div>
+                    <label class="block font-semibold mb-1">User ID</label>
+                    <input type="text" id="user-id-input" class="w-full p-2 border rounded" placeholder="Choose User ID">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Password</label>
+                    <input type="password" id="user-pass-input" class="w-full p-2 border rounded" placeholder="Choose Password">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="registerUser()" class="flex-1 bg-gray-200 py-2.5 rounded font-bold">Register</button>
+                    <button onclick="loginUser()" class="flex-1 bg-[#ff3864] text-white py-2.5 rounded font-bold">Login</button>
+                </div>
+            </div>
+            <div id="auth-status-msg" class="mt-3 text-xs font-medium text-center"></div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="overlay" id="add-product-modal">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Add New Product</h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Category</label>
+                    <select id="new-prod-cat" class="w-full p-2 border rounded"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-semibold mb-1">Item Name</label><input type="text" id="new-prod-name" class="w-full p-2 border rounded"></div>
+                    <div><label class="block font-semibold mb-1">Brand</label><input type="text" id="new-prod-brand" class="w-full p-2 border rounded"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label class="block font-semibold mb-1">MRP (₹)</label><input type="number" id="new-prod-mrp" class="w-full p-2 border rounded"></div>
+                    <div><label class="block font-semibold mb-1">Billing Val (₹)</label><input type="number" id="new-prod-bill" class="w-full p-2 border rounded"></div>
+                    <div><label class="block font-semibold mb-1">Stock Qty</label><input type="number" id="new-prod-stock" value="100" class="w-full p-2 border rounded"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label class="block font-semibold mb-1">Weight</label><input type="text" id="new-prod-wt" value="-" class="w-full p-2 border rounded"></div>
+                    <div><label class="block font-semibold mb-1">Shelf Life</label><input type="text" id="new-prod-shelf" value="-" class="w-full p-2 border rounded"></div>
+                    <div><label class="block font-semibold mb-1">MOQ</label><input type="text" id="new-prod-moq" value="1" class="w-full p-2 border rounded"></div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Photo URL (Direct Image Link)</label><input type="text" id="new-prod-img" placeholder="https://..." class="w-full p-2 border rounded">
+                </div>
+            </div>
+            <div class="mt-5 flex gap-2">
+                <button onclick="closeAddProductModal()" class="flex-1 bg-gray-200 py-2 rounded font-bold text-xs">Cancel</button>
+                <button onclick="saveNewProduct()" class="flex-1 bg-[#ff3864] text-white py-2 rounded font-bold text-xs">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div class="overlay" id="add-cat-modal">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Add New Category</h3>
+            <div>
+                <label class="block text-xs font-semibold mb-1">Category Name</label>
+                <input type="text" id="new-cat-name" placeholder="e.g. SNACKS" class="w-full p-2 border rounded text-xs uppercase">
+            </div>
+            <div class="mt-5 flex gap-2">
+                <button onclick="closeAddCategoryModal()" class="flex-1 bg-gray-200 py-2 rounded font-bold text-xs">Cancel</button>
+                <button onclick="saveNewCategory()" class="flex-1 bg-[#ff3864] text-white py-2 rounded font-bold text-xs">Create Category</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const initialCatalogData = {
+            "CHOCOLATE": [
+                {"sno": "1", "name": "CADBURY DAIRY MILK", "brand": "CADBURY", "uom": "PC", "mrp": 10.0, "weight": "12g", "shelf_life": "1 Year", "moq": "56", "margin": 12.0, "billing_value": 8.8},
+                {"sno": "2", "name": "CADBURY DAIRY MILK", "brand": "CADBURY", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "40", "margin": 16.0, "billing_value": 16.8},
+                {"sno": "3", "name": "CADBURY DAIRY MILK", "brand": "CADBURY", "uom": "PC", "mrp": 45.0, "weight": "40g", "shelf_life": "1 Year", "moq": "30", "margin": 16.0, "billing_value": 37.8},
+                {"sno": "4", "name": "PERK", "brand": "CADBURY", "uom": "PC", "mrp": 10.0, "weight": "25g", "shelf_life": "9 Month", "moq": "30", "margin": 12.0, "billing_value": 8.8},
+                {"sno": "5", "name": "FUSE", "brand": "CADBURY", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "24", "margin": 12.0, "billing_value": 17.6},
+                {"sno": "6", "name": "CDM CELEBRATION", "brand": "CADBURY", "uom": "PC", "mrp": 160.0, "weight": "153g", "shelf_life": "8 Month", "moq": "8", "margin": 16.0, "billing_value": 134.4},
+                {"sno": "7", "name": "CDM CELEBRATION", "brand": "CADBURY", "uom": "PC", "mrp": 50.0, "weight": "54g", "shelf_life": "8 Month", "moq": "8", "margin": 16.0, "billing_value": 42.0},
+                {"sno": "8", "name": "CDM SILK BUBBLY", "brand": "CADBURY", "uom": "PC", "mrp": 214.0, "weight": "112g", "shelf_life": "9 Month", "moq": "3", "margin": 16.0, "billing_value": 179.76},
+                {"sno": "9", "name": "CDM SILK FRUIT & NUT", "brand": "CADBURY", "uom": "PC", "mrp": 214.0, "weight": "129g", "shelf_life": "11 Month", "moq": "3", "margin": 16.0, "billing_value": 179.76},
+                {"sno": "10", "name": "CDM CELEBRATION", "brand": "CADBURY", "uom": "PC", "mrp": 110.0, "weight": "109g", "shelf_life": "8 Month", "moq": "3", "margin": 16.0, "billing_value": 92.4},
+                {"sno": "11", "name": "CDM SILK BUBBLY", "brand": "CADBURY", "uom": "PC", "mrp": 98.0, "weight": "46g", "shelf_life": "9 Month", "moq": "20", "margin": 16.0, "billing_value": 82.32},
+                {"sno": "12", "name": "CDM FRUIT & NUT", "brand": "CADBURY", "uom": "PC", "mrp": 98.0, "weight": "51g", "shelf_life": "1 Year", "moq": "30", "margin": 16.0, "billing_value": 82.32},
+                {"sno": "13", "name": "CDM SILK OREO", "brand": "CADBURY", "uom": "PC", "mrp": 98.0, "weight": "58g", "shelf_life": "1 Year", "moq": "32", "margin": 16.0, "billing_value": 82.32},
+                {"sno": "14", "name": "CDM ROASTED ALMOND", "brand": "CADBURY", "uom": "PC", "mrp": 49.0, "weight": "36g", "shelf_life": "1 Year", "moq": "40", "margin": 16.0, "billing_value": 41.16},
+                {"sno": "15", "name": "CDM FRUIT & NUT", "brand": "CADBURY", "uom": "PC", "mrp": 49.0, "weight": "36g", "shelf_life": "1 Year", "moq": "40", "margin": 16.0, "billing_value": 41.16},
+                {"sno": "16", "name": "FIVE STAR", "brand": "CADBURY", "uom": "PC", "mrp": 10.0, "weight": "20g", "shelf_life": "9 Month", "moq": "40", "margin": 12.0, "billing_value": 8.8},
+                {"sno": "17", "name": "DAIRY MILK CHOCOLATE", "brand": "CADBURY", "uom": "PC", "mrp": 102.0, "weight": "60g", "shelf_life": "-", "moq": "1", "margin": 16.0, "billing_value": 85.68},
+                {"sno": "18", "name": "ZUBI MINIATURE", "brand": "ZUBI", "uom": "PC", "mrp": 10.0, "weight": "10g", "shelf_life": "18 Months", "moq": "24pc", "margin": 30.0, "billing_value": 7.0},
+                {"sno": "19", "name": "ZUBI MINIATURE", "brand": "ZUBI", "uom": "PC", "mrp": 20.0, "weight": "20g", "shelf_life": "18 Months", "moq": "24pc", "margin": 30.0, "billing_value": 14.0},
+                {"sno": "20", "name": "ZUBI TOFFEE MICKY LOLLIES", "brand": "ZUBI", "uom": "PC", "mrp": 30.0, "weight": "30G", "shelf_life": "12 Months", "moq": "48pc", "margin": 30.0, "billing_value": 21.0},
+                {"sno": "21", "name": "ZIPPY COLOUR BUTTONS", "brand": "ZUBI", "uom": "PC", "mrp": 25.0, "weight": "20g", "shelf_life": "12 Months", "moq": "48pc", "margin": 30.0, "billing_value": 17.5},
+                {"sno": "22", "name": "ZIPPY  SWIRL JELLY", "brand": "ZUBI", "uom": "PC", "mrp": 25.0, "weight": "25g", "shelf_life": "12 Months", "moq": "48pc", "margin": 30.0, "billing_value": 17.5},
+                {"sno": "23", "name": "ZIPPY TEDDY JELLY", "brand": "ZUBI", "uom": "PC", "mrp": 25.0, "weight": "25g", "shelf_life": "12 Months", "moq": "48pc", "margin": 30.0, "billing_value": 17.5},
+                {"sno": "24", "name": "ZIPPY SEASME SWIRL LOLLY", "brand": "ZUBI", "uom": "PC", "mrp": 25.0, "weight": "20G", "shelf_life": "12 Months", "moq": "48pc", "margin": 30.0, "billing_value": 17.5},
+                {"sno": "25", "name": "ZUBI DUCKY STICK", "brand": "ZUBI", "uom": "PC", "mrp": 30.0, "weight": "25g", "shelf_life": "12 Months", "moq": "42pc", "margin": 30.0, "billing_value": 21.0},
+                {"sno": "26", "name": "Zubi Candy Rock", "brand": "ZUBI", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "12 Months", "moq": "48", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "27", "name": "Kunafa Treat Croissant", "brand": "Britania", "uom": "pc", "mrp": 60.0, "weight": "-", "shelf_life": "-", "moq": "20", "margin": 40.0, "billing_value": 36.0},
+                {"sno": "28", "name": "Chocolate Treat Wafer", "brand": "Britania", "uom": "pc", "mrp": 10.0, "weight": "-", "shelf_life": "-", "moq": "144", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "29", "name": "Original Date Bites", "brand": "HAPPILIO", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "-", "moq": "10", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "30", "name": "Dates Bites orange", "brand": "HAPPILIO", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "-", "moq": "10", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "31", "name": "Almond Crunch", "brand": "HAPPILIO", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "32", "name": "Lollipop Jar", "brand": "SOUR PUNK", "uom": "PC", "mrp": 650.0, "weight": "-", "shelf_life": "2 YEARS", "moq": "130", "margin": 30.0, "billing_value": 455.0},
+                {"sno": "33", "name": "Apple", "brand": "SOUR PUNK", "uom": "PC", "mrp": 40.0, "weight": "40g", "shelf_life": "2 YEARS", "moq": "24", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "34", "name": "Blueberry", "brand": "SOUR PUNK", "uom": "PC", "mrp": 40.0, "weight": "40g", "shelf_life": "2 YEARS", "moq": "24", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "35", "name": "Cola", "brand": "SOUR PUNK", "uom": "PC", "mrp": 40.0, "weight": "40g", "shelf_life": "2 YEARS", "moq": "24", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "36", "name": "Strawberry", "brand": "SOUR PUNK", "uom": "PC", "mrp": 40.0, "weight": "40g", "shelf_life": "2 YEARS", "moq": "24", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "37", "name": "Kit Kat 2 Finger", "brand": "NESTLE", "uom": "PC", "mrp": 20.0, "weight": "18.5g", "shelf_life": "-", "moq": "30", "margin": 13.0, "billing_value": 17.4},
+                {"sno": "38", "name": "Kit Kat 3 Finger", "brand": "NESTLE", "uom": "PC", "mrp": 25.0, "weight": "28.5g", "shelf_life": "-", "moq": "18", "margin": 17.0, "billing_value": 20.75},
+                {"sno": "39", "name": "Kit Kat Delights Dark", "brand": "NESTLE", "uom": "PC", "mrp": 95.0, "weight": "50g", "shelf_life": "-", "moq": "12", "margin": 17.0, "billing_value": 78.85},
+                {"sno": "40", "name": "Kit Kat Delights Rich Choco", "brand": "NESTLE", "uom": "PC", "mrp": 90.0, "weight": "50g", "shelf_life": "-", "moq": "12", "margin": 17.0, "billing_value": 74.7},
+                {"sno": "41", "name": "Kit Kat Hazelnut Crunch", "brand": "NESTLE", "uom": "PC", "mrp": 210.0, "weight": "120g", "shelf_life": "-", "moq": "6", "margin": 17.0, "billing_value": 174.3},
+                {"sno": "42", "name": "Nestle Milkybar Mould", "brand": "NESTLE", "uom": "PC", "mrp": 20.0, "weight": "21g", "shelf_life": "-", "moq": "24", "margin": 13.0, "billing_value": 17.4},
+                {"sno": "43", "name": "Nestle Munch Maxx Nuts", "brand": "NESTLE", "uom": "PC", "mrp": 25.0, "weight": "37.5g", "shelf_life": "-", "moq": "20", "margin": 17.0, "billing_value": 20.75},
+                {"sno": "44", "name": "Nestle Classic", "brand": "NESTLE", "uom": "PC", "mrp": 20.0, "weight": "28g", "shelf_life": "-", "moq": "21", "margin": 13.0, "billing_value": 17.4}
+            ],
+            "NAMKEEN": [
+                {"sno": "1", "name": "Jhal Chanachur", "brand": "HALDIRAM", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "6months", "moq": "1", "margin": 20.0, "billing_value": 8.0},
+                {"sno": "2", "name": "Bhujia", "brand": "HALDIRAM", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "6months", "moq": "1", "margin": 20.0, "billing_value": 8.0},
+                {"sno": "3", "name": "Bhujia", "brand": "HALDIRAM", "uom": "PC", "mrp": 5.0, "weight": "-", "shelf_life": "6months", "moq": "1", "margin": 20.0, "billing_value": 4.0},
+                {"sno": "4", "name": "Tok Jhal Misti", "brand": "HALDIRAM", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "6months", "moq": "1", "margin": 20.0, "billing_value": 8.0},
+                {"sno": "5", "name": "Moong Dal", "brand": "HALDIRAM", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "6months", "moq": "1", "margin": 20.0, "billing_value": 8.0},
+                {"sno": "6", "name": "Lite Chidwa", "brand": "HALDIRAM", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "6months", "moq": "1", "margin": 20.0, "billing_value": 8.0},
+                {"sno": "7", "name": "Soya Crunchies", "brand": "WHITE LABEL", "uom": "PC", "mrp": 90.0, "weight": "180", "shelf_life": "2months", "moq": "1PC", "margin": 15.0, "billing_value": 76.5},
+                {"sno": "8", "name": "Cheese Corn Bites", "brand": "WHITE LABEL", "uom": "PC", "mrp": 90.0, "weight": "180", "shelf_life": "2months", "moq": "1PC", "margin": 15.0, "billing_value": 76.5},
+                {"sno": "9", "name": "Oats Heart Cheddar Cheese", "brand": "WHITE LABEL", "uom": "PC", "mrp": 70.0, "weight": "80", "shelf_life": "2months", "moq": "1PC", "margin": 15.0, "billing_value": 59.5},
+                {"sno": "10", "name": "Jowar balls cheese and oregano", "brand": "WHITE LABEL", "uom": "PC", "mrp": 70.0, "weight": "80", "shelf_life": "2months", "moq": "1PC", "margin": 15.0, "billing_value": 59.5},
+                {"sno": "11", "name": "Multiflakes mix", "brand": "WHITE LABEL", "uom": "PC", "mrp": 100.0, "weight": "180", "shelf_life": "2months", "moq": "1PC", "margin": 15.0, "billing_value": 85.0},
+                {"sno": "12", "name": "RAGI BHUJIA HEALTHY MIXTURE", "brand": "WHITE LABEL", "uom": "PC", "mrp": 0, "weight": "120", "shelf_life": "2months", "moq": "1PC", "margin": 15.0, "billing_value": 0.0},
+                {"sno": "13", "name": "SOYA CHIPS", "brand": "WHITE LABEL", "uom": "PC", "mrp": 110.0, "weight": "150", "shelf_life": "2months", "moq": "1PC", "margin": 15.0, "billing_value": 93.5},
+                {"sno": "14", "name": "CORN BISCUIT", "brand": "WHITE LABEL", "uom": "PC", "mrp": 90.0, "weight": "140", "shelf_life": "2months", "moq": "1PC", "margin": 15.0, "billing_value": 76.5},
+                {"sno": "15", "name": "CORN TIKKA PERI PERI", "brand": "WHITE LABEL", "uom": "PC", "mrp": 0, "weight": "150", "shelf_life": "2months", "moq": "1PC", "margin": 15.0, "billing_value": 0.0},
+                {"sno": "16", "name": "Little Heart", "brand": "BRITANIA", "uom": "PC", "mrp": 5.0, "weight": "-", "shelf_life": "2months", "moq": "15", "margin": 15.0, "billing_value": 4.25},
+                {"sno": "17", "name": "CORN TRIANGLE  CHILLI TOMATO", "brand": "WHITE LABEL", "uom": "PC", "mrp": 90.0, "weight": "150", "shelf_life": "2months", "moq": "1", "margin": 15.0, "billing_value": 76.5},
+                {"sno": "18", "name": "CORN SHELL CHILLI TOMATO", "brand": "WHITE LABEL", "uom": "PC", "mrp": 90.0, "weight": "130", "shelf_life": "2months", "moq": "1", "margin": 15.0, "billing_value": 76.5},
+                {"sno": "19", "name": "BEETROOT CHIPS CREAM ONION", "brand": "WHITE LABEL", "uom": "PC", "mrp": 100.0, "weight": "120", "shelf_life": "2months", "moq": "1", "margin": 15.0, "billing_value": 85.0},
+                {"sno": "20", "name": "BEETROOT ROASTED MIX", "brand": "WHITE LABEL", "uom": "PC", "mrp": 0, "weight": "-", "shelf_life": "2months", "moq": "1", "margin": 15.0, "billing_value": 0.0},
+                {"sno": "21", "name": "PALAK CHIPS CHEESE HERB", "brand": "WHITE LABEL", "uom": "PC", "mrp": 100.0, "weight": "120", "shelf_life": "2months", "moq": "1", "margin": 15.0, "billing_value": 85.0},
+                {"sno": "22", "name": "Onion & Garlic Coated Peanuts", "brand": "TONG GARDEN", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 15.0, "billing_value": 8.5},
+                {"sno": "23", "name": "Spicy Lime Coated Peanut", "brand": "TONG GARDEN", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 15.0, "billing_value": 8.5},
+                {"sno": "24", "name": "Magic Masala Coated Peanut", "brand": "TONG GARDEN", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 15.0, "billing_value": 8.5},
+                {"sno": "25", "name": "Onion & Garlic Flavour Green Peas", "brand": "TONG GARDEN", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 15.0, "billing_value": 8.5},
+                {"sno": "26", "name": "Mexican Taco Flavour Green Pea", "brand": "TONG GARDEN", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 15.0, "billing_value": 8.5},
+                {"sno": "27", "name": "Tangy Tomato Chickpeas", "brand": "TONG GARDEN", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 15.0, "billing_value": 8.5},
+                {"sno": "28", "name": "Magic Masala Chickpeas", "brand": "TONG GARDEN", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 15.0, "billing_value": 8.5},
+                {"sno": "29", "name": "Makhana Chilli Garlic", "brand": "HAPPILIO", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 30.0, "billing_value": 14.0},
+                {"sno": "30", "name": "Makhana Cream & Onion", "brand": "HAPPILIO", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 30.0, "billing_value": 14.0}
+            ],
+            "BEVERAGE": [
+                {"sno": "1", "name": "FROOTI", "brand": "PARLE", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "6months", "moq": "40", "margin": 11.0, "billing_value": 8.9},
+                {"sno": "2", "name": "COLA", "brand": "CAMPA", "uom": "PC", "mrp": 10.0, "weight": "200 ML", "shelf_life": "3months", "moq": "30", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "3", "name": "ORANGE", "brand": "CAMPA", "uom": "PC", "mrp": 10.0, "weight": "200 ML", "shelf_life": "3months", "moq": "30", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "4", "name": "LEMON", "brand": "CAMPA", "uom": "PC", "mrp": 10.0, "weight": "200 ML", "shelf_life": "3months", "moq": "30", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "5", "name": "COLA", "brand": "CAMPA", "uom": "PC", "mrp": 20.0, "weight": "500ml", "shelf_life": "5 months", "moq": "24", "margin": 25.0, "billing_value": 15.0},
+                {"sno": "6", "name": "ORANGE", "brand": "CAMPA", "uom": "PC", "mrp": 20.0, "weight": "500ml", "shelf_life": "5 months", "moq": "24", "margin": 25.0, "billing_value": 15.0},
+                {"sno": "7", "name": "LEMON", "brand": "CAMPA", "uom": "PC", "mrp": 20.0, "weight": "500ml", "shelf_life": "5 months", "moq": "24", "margin": 25.0, "billing_value": 15.0},
+                {"sno": "8", "name": "WATER", "brand": "WHITE LABEL", "uom": "PC", "mrp": 10.0, "weight": "500ml", "shelf_life": "12months", "moq": "24", "margin": 50.0, "billing_value": 5.0},
+                {"sno": "9", "name": "Grape Fruit Drink", "brand": "TESTO", "uom": "PC", "mrp": 70.0, "weight": "325ml", "shelf_life": "1 Year", "moq": "6", "margin": 25.0, "billing_value": 52.5},
+                {"sno": "10", "name": "Pineaple Fruit Drink", "brand": "TESTO", "uom": "PC", "mrp": 70.0, "weight": "325ml", "shelf_life": "1 Year", "moq": "6", "margin": 25.0, "billing_value": 52.5},
+                {"sno": "11", "name": "Strawberry Fruit Drink", "brand": "TESTO", "uom": "PC", "mrp": 70.0, "weight": "325ml", "shelf_life": "1 Year", "moq": "6", "margin": 25.0, "billing_value": 52.5},
+                {"sno": "12", "name": "Litchi Fruit Juice", "brand": "TESTO", "uom": "PC", "mrp": 70.0, "weight": "325ml", "shelf_life": "1 year", "moq": "6", "margin": 25.0, "billing_value": 52.5},
+                {"sno": "13", "name": "Kiwi Fruit Drink", "brand": "TESTO", "uom": "PC", "mrp": 70.0, "weight": "325ml", "shelf_life": "1 Year", "moq": "6", "margin": 25.0, "billing_value": 52.5},
+                {"sno": "14", "name": "Lassi", "brand": "BRITANIA", "uom": "PC", "mrp": 30.0, "weight": "200ml", "shelf_life": "8 months", "moq": "30", "margin": 30.0, "billing_value": 21.0},
+                {"sno": "15", "name": "Strawberry Shake", "brand": "BRITANIA", "uom": "PC", "mrp": 40.0, "weight": "180ml", "shelf_life": "8 months", "moq": "30", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "16", "name": "Chocolate Shake", "brand": "BRITANIA", "uom": "PC", "mrp": 40.0, "weight": "180ml", "shelf_life": "8 months", "moq": "30", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "17", "name": "Vanilla Shake", "brand": "BRITANIA", "uom": "PC", "mrp": 40.0, "weight": "180ml", "shelf_life": "8 months", "moq": "30", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "18", "name": "Bourbon Shake", "brand": "BRITANIA", "uom": "PC", "mrp": 40.0, "weight": "180ml", "shelf_life": "8 months", "moq": "30", "margin": 30.0, "billing_value": 28.0},
+                {"sno": "19", "name": "Lychee", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "20", "name": "Mix Fruit", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "21", "name": "Blueberry", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "22", "name": "Red Grape", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "23", "name": "Orange", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "24", "name": "Water Melon", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "25", "name": "Pineapple", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "26", "name": "Kiwi", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "27", "name": "Passion Fruit", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "28", "name": "Mango", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "29", "name": "Strawberry", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "30", "name": "Pomengranate", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "31", "name": "Apple", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "32", "name": "White Grape", "brand": "Coco Royal", "uom": "Pc", "mrp": 99.0, "weight": "290ml", "shelf_life": "2 Year", "moq": "24", "margin": 35.0, "billing_value": 64.35},
+                {"sno": "33", "name": "Belgian Chocolate Milkshake", "brand": "CAVIN'S", "uom": "Pc", "mrp": 40.0, "weight": "170ml", "shelf_life": "9month", "moq": "30", "margin": 25.0, "billing_value": 30.0},
+                {"sno": "34", "name": "Cold Coffee", "brand": "CAVIN'S", "uom": "Pc", "mrp": 40.0, "weight": "170ml", "shelf_life": "9month", "moq": "30", "margin": 25.0, "billing_value": 30.0},
+                {"sno": "35", "name": "Chocolate Milkshake", "brand": "CAVIN'S", "uom": "Pc", "mrp": 40.0, "weight": "170ml", "shelf_life": "9month", "moq": "30", "margin": 25.0, "billing_value": 30.0},
+                {"sno": "36", "name": "Strawberry Milkshake", "brand": "CAVIN'S", "uom": "Pc", "mrp": 40.0, "weight": "170ml", "shelf_life": "9month", "moq": "30", "margin": 25.0, "billing_value": 30.0},
+                {"sno": "37", "name": "Rose Lassi", "brand": "CAVIN'S", "uom": "Pc", "mrp": 30.0, "weight": "170ml", "shelf_life": "9month", "moq": "30", "margin": 25.0, "billing_value": 22.5},
+                {"sno": "38", "name": "Masala Chaasa", "brand": "CAVIN'S", "uom": "Pc", "mrp": 25.0, "weight": "170ml", "shelf_life": "9month", "moq": "30", "margin": 25.0, "billing_value": 18.75},
+                {"sno": "39", "name": "Rabdi Milkshake Can", "brand": "CAVIN'S", "uom": "Pc", "mrp": 60.0, "weight": "170ml", "shelf_life": "9month", "moq": "12", "margin": 25.0, "billing_value": 45.0},
+                {"sno": "40", "name": "Gulkhand Milkshake Can", "brand": "CAVIN'S", "uom": "Pc", "mrp": 60.0, "weight": "170ml", "shelf_life": "9month", "moq": "12", "margin": 25.0, "billing_value": 45.0},
+                {"sno": "41", "name": "Friva Apple Juice", "brand": "CAVIN'S", "uom": "Pc", "mrp": 20.0, "weight": "170ml", "shelf_life": "9month", "moq": "30", "margin": 25.0, "billing_value": 15.0},
+                {"sno": "42", "name": "Vanilla Milkshake", "brand": "CAVIN'S", "uom": "Pc", "mrp": 40.0, "weight": "170ml", "shelf_life": "9month", "moq": "30", "margin": 25.0, "billing_value": 30.0},
+                {"sno": "43", "name": "Badam Milkshake Can", "brand": "CAVIN'S", "uom": "PC", "mrp": 60.0, "weight": "170ml", "shelf_life": "9 Month", "moq": "12", "margin": 25.0, "billing_value": 45.0},
+                {"sno": "44", "name": "Friva Mixed Fruit", "brand": "CAVIN'S", "uom": "PC", "mrp": 20.0, "weight": "170ml", "shelf_life": "9 Month", "moq": "40", "margin": 25.0, "billing_value": 15.0},
+                {"sno": "45", "name": "Friva Litchi", "brand": "CAVIN'S", "uom": "PC", "mrp": 20.0, "weight": "170ml", "shelf_life": "9 Month", "moq": "30", "margin": 25.0, "billing_value": 15.0},
+                {"sno": "46", "name": "Friva Orange", "brand": "CAVIN'S", "uom": "PC", "mrp": 20.0, "weight": "170ml", "shelf_life": "9 Month", "moq": "30", "margin": 25.0, "billing_value": 15.0},
+                {"sno": "47", "name": "Lychee", "brand": "Poko Loko", "uom": "PC", "mrp": 70.0, "weight": "300ml", "shelf_life": "15 Month", "moq": "6", "margin": 28.0, "billing_value": 50.4},
+                {"sno": "48", "name": "Grape", "brand": "Poko Loko", "uom": "PC", "mrp": 70.0, "weight": "300ml", "shelf_life": "15 Month", "moq": "6", "margin": 28.0, "billing_value": 50.4},
+                {"sno": "49", "name": "Watermelon", "brand": "Poko Loko", "uom": "PC", "mrp": 70.0, "weight": "300ml", "shelf_life": "15 Month", "moq": "6", "margin": 28.0, "billing_value": 50.4},
+                {"sno": "50", "name": "Orange", "brand": "Poko Loko", "uom": "PC", "mrp": 70.0, "weight": "300ml", "shelf_life": "15 Month", "moq": "6", "margin": 28.0, "billing_value": 50.4},
+                {"sno": "51", "name": "Mango", "brand": "Poko Loko", "uom": "PC", "mrp": 70.0, "weight": "300ml", "shelf_life": "15 Month", "moq": "6", "margin": 28.0, "billing_value": 50.4},
+                {"sno": "52", "name": "Pomegranate", "brand": "Poko Loko", "uom": "PC", "mrp": 70.0, "weight": "300ml", "shelf_life": "15 Month", "moq": "6", "margin": 28.0, "billing_value": 50.4},
+                {"sno": "53", "name": "Blackcurrent", "brand": "Poko Loko", "uom": "PC", "mrp": 70.0, "weight": "300ml", "shelf_life": "15 Month", "moq": "6", "margin": 28.0, "billing_value": 50.4},
+                {"sno": "54", "name": "Melon", "brand": "Poko Loko", "uom": "PC", "mrp": 70.0, "weight": "300ml", "shelf_life": "15 Month", "moq": "6", "margin": 28.0, "billing_value": 50.4},
+                {"sno": "55", "name": "Caramel Latte", "brand": "Nescafe", "uom": "PC", "mrp": 125.0, "weight": "230ml", "shelf_life": "-", "moq": "30", "margin": 40.0, "billing_value": 75.0},
+                {"sno": "56", "name": "Latte", "brand": "Nescafe", "uom": "PC", "mrp": 45.0, "weight": "180ml", "shelf_life": "-", "moq": "30", "margin": 28.0, "billing_value": 32.4},
+                {"sno": "57", "name": "Intense", "brand": "Nescafe", "uom": "PC", "mrp": 45.0, "weight": "180ml", "shelf_life": "-", "moq": "30", "margin": 28.0, "billing_value": 32.4},
+                {"sno": "58", "name": "Limca", "brand": "Coca-Cola", "uom": "PC", "mrp": 20.0, "weight": "300ml", "shelf_life": "-", "moq": "28", "margin": 13.0, "billing_value": 17.4},
+                {"sno": "59", "name": "Thums-Up", "brand": "Coca-Cola", "uom": "PC", "mrp": 20.0, "weight": "300ml", "shelf_life": "-", "moq": "28", "margin": 13.0, "billing_value": 17.4},
+                {"sno": "60", "name": "Sprite", "brand": "Coca-Cola", "uom": "PC", "mrp": 20.0, "weight": "300ml", "shelf_life": "-", "moq": "28", "margin": 13.0, "billing_value": 17.4},
+                {"sno": "61", "name": "Thums-Up", "brand": "Coca-Cola", "uom": "PC", "mrp": 40.0, "weight": "750ml", "shelf_life": "-", "moq": "24", "margin": 18.0, "billing_value": 32.8},
+                {"sno": "62", "name": "Sprite", "brand": "Coca-Cola", "uom": "PC", "mrp": 40.0, "weight": "750ml", "shelf_life": "-", "moq": "24", "margin": 18.0, "billing_value": 32.8},
+                {"sno": "63", "name": "Fanta", "brand": "Coca-Cola", "uom": "PC", "mrp": 30.0, "weight": "500ml", "shelf_life": "-", "moq": "24", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "64", "name": "Limca", "brand": "Coca-Cola", "uom": "PC", "mrp": 30.0, "weight": "500ml", "shelf_life": "-", "moq": "24", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "65", "name": "Thums-Up", "brand": "Coca-Cola", "uom": "PC", "mrp": 30.0, "weight": "500ml", "shelf_life": "-", "moq": "24", "margin": 18.0, "billing_value": 24.6}
+            ],
+            "DIPS": [
+                {"sno": "1", "name": "FB Pouch Mayonnaise", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "32", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "2", "name": "FB Pouch Mayo Jalapeno Cheese", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "32", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "3", "name": "FB Pouch Mayonnaise Tandoori", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "32", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "4", "name": "FB Pouch Pizza Pasta Sauce (CM)", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "34", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "5", "name": "FB Pouch Pizza Pasta Sauce (CT)", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "34", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "6", "name": "FB Pouch Salsa Dip", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "34", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "7", "name": "FB Pouch Schezwan Sauce", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "34", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "8", "name": "FB Pouch Peri Peri Sauce", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "34", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "9", "name": "FB Pouch Sandwich Spread", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "32", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "10", "name": "FB Pouch Mayonnaise Herbs & Garlic", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "6 Months", "moq": "7pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "11", "name": "FB Pouch Chilli Flakes", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "12 Months", "moq": "42pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "12", "name": "FB Pouch Peri Peri Seasoning", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "12 Months", "moq": "42pc", "margin": 25.0, "billing_value": 7.5},
+                {"sno": "13", "name": "FB Pouch Oregano Seasoning", "brand": "FRIC", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "12 Months", "moq": "42pc", "margin": 25.0, "billing_value": 7.5}
+            ],
+            "TRADING": [
+                {"sno": "1", "name": "Snow Spray", "brand": "N/A", "uom": "Box", "mrp": 40.0, "weight": "-", "shelf_life": "-", "moq": "24", "margin": 25.0, "billing_value": 30.0},
+                {"sno": "2", "name": "Ribbon SPray", "brand": "N/A", "uom": "Box", "mrp": 40.0, "weight": "-", "shelf_life": "-", "moq": "24", "margin": 25.0, "billing_value": 30.0},
+                {"sno": "3", "name": "40cm Party Popper", "brand": "N/A", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 25.0, "billing_value": 30.0},
+                {"sno": "4", "name": "Foil Fridge Curtain", "brand": "N/A", "uom": "Packet", "mrp": 35.0, "weight": "-", "shelf_life": "-", "moq": "10", "margin": 25.0, "billing_value": 26.25},
+                {"sno": "5", "name": "Birthday Foil", "brand": "N/A", "uom": "Packet", "mrp": 60.0, "weight": "-", "shelf_life": "-", "moq": "10", "margin": 25.0, "billing_value": 45.0},
+                {"sno": "6", "name": "Spiral Candle", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "100", "margin": 40.0, "billing_value": 12.0},
+                {"sno": "7", "name": "15cm Sparkling Candle", "brand": "N/A", "uom": "Packet", "mrp": 60.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 15.0, "billing_value": 51.0},
+                {"sno": "8", "name": "Metalic Baloons", "brand": "N/A", "uom": "Packet", "mrp": 60.0, "weight": "-", "shelf_life": "-", "moq": "1", "margin": 15.0, "billing_value": 51.0},
+                {"sno": "9", "name": "Magic Candle", "brand": "N/A", "uom": "PC", "mrp": 5.0, "weight": "-", "shelf_life": "-", "moq": "24", "margin": 15.0, "billing_value": 4.25},
+                {"sno": "10", "name": "Number Candles 0", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "11", "name": "Number Candles 1", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "12", "name": "Number Candles 2", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "13", "name": "Number Candles 3", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "14", "name": "Number Candles 4", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "15", "name": "Number Candles 5", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "16", "name": "Number Candles 6", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "17", "name": "Number Candles 7", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "18", "name": "Number Candles 8", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "19", "name": "Number Candles 9", "brand": "N/A", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "-", "moq": "12", "margin": 35.0, "billing_value": 13.55},
+                {"sno": "20", "name": "Marshmellow", "brand": "N/A", "uom": "PC", "mrp": 150.0, "weight": "120", "shelf_life": "-", "moq": "1", "margin": 20.0, "billing_value": 120.0}
+            ],
+            "ICE-CREAM": [
+                {"sno": "1", "name": "Vanilla 55ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "24", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "2", "name": "Butter Scotch 90ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 25.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 20.5},
+                {"sno": "3", "name": "Kesar Pista 90ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 30.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "4", "name": "Vanilla Supreme 90ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 18.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 14.76},
+                {"sno": "5", "name": "Two in One 90ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 18.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 14.76},
+                {"sno": "6", "name": "Chocolate 90ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 22.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 18.04},
+                {"sno": "7", "name": "Oreo 100ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 55.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 45.1},
+                {"sno": "8", "name": "Sundae 100ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "9", "name": "Strawberry Sundae (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 32.8},
+                {"sno": "10", "name": "American Nuts (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "11", "name": "Tender Coconut 100ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 50.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 41.0},
+                {"sno": "12", "name": "Trixy Cheescake 100ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "13", "name": "Trixy Cookie 100ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "14", "name": "Desi Kulfi (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 60.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 49.2},
+                {"sno": "15", "name": "Cup Nolen Gur 100ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 32.8},
+                {"sno": "16", "name": "Choco Brownie 100ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 45.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 36.9},
+                {"sno": "17", "name": "Dry Fruit 100ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 50.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 41.0},
+                {"sno": "18", "name": "Divine Chocolate 100ml (Cup)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 50.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 41.0},
+                {"sno": "19", "name": "Chocobar Mini 40ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "36", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "20", "name": "Orange Mahabar 65ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 9.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 7.38},
+                {"sno": "21", "name": "Masala Cola Chuski 60ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "22", "name": "Aam Panna Chuski 60ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "23", "name": "Shikanji Chuski 60ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "24", "name": "Mango Duet 45ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "36", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "25", "name": "Choco Lava 45ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "60", "moq": "36", "margin": 18.0, "billing_value": 16.4},
+                {"sno": "26", "name": "Nutty Bar Mini 50ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 18.0, "weight": "-", "shelf_life": "60", "moq": "30", "margin": 18.0, "billing_value": 14.76},
+                {"sno": "27", "name": "Mango Masti 45ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "30", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "28", "name": "Sandwich Chocolate 80ml (Paddle POP)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "29", "name": "Mango Zap 65ml (Zap)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 25.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 20.5},
+                {"sno": "30", "name": "Aamras  70ml (Zap)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 30.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "31", "name": "Chocobar SR 70ml (Feast)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 18.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 14.76},
+                {"sno": "32", "name": "Fst Chocolate 70ml (Feast)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 32.8},
+                {"sno": "33", "name": "Feast Black Forest (Feast)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 45.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 36.9},
+                {"sno": "34", "name": "Feast Cad Crackle 70ml (Feast)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 65.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 53.3},
+                {"sno": "35", "name": "CASSATA (Feast)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "36", "name": "Rajwadi Kulfi 35ml (Kulfi)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 15.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 12.3},
+                {"sno": "37", "name": "Shahi Kulfi  50ml (Kulfi)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 18.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 14.76},
+                {"sno": "38", "name": "Dry Fruit Kulfi 50ml (Kulfi)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "39", "name": "Butter Scotch 105ml (Cornetto)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 32.8},
+                {"sno": "40", "name": "Double Chocolate 105ml (Cornetto)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "41", "name": "Choco Vanilla 105ml (Cornetto)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 25.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 20.5},
+                {"sno": "42", "name": "Mini Chocolate 45ml (Cornetto)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 22.0, "weight": "-", "shelf_life": "60", "moq": "27", "margin": 18.0, "billing_value": 18.04},
+                {"sno": "43", "name": "Mini Butter Scotch 45ml (Cornetto)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 22.0, "weight": "-", "shelf_life": "60", "moq": "27", "margin": 18.0, "billing_value": 18.04},
+                {"sno": "44", "name": "Disc Oreo 110ml (Cornetto)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 65.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 53.3},
+                {"sno": "45", "name": "Cor Choco Brownie 110ml (Cornetto)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 55.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 45.1},
+                {"sno": "46", "name": "Cor Salted Caramel 110ml (Cornetto)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "47", "name": "Cor Royal Kulfi 105ml (Cornetto)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 65.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 53.3},
+                {"sno": "48", "name": "Cor Choco cone (Cornetto) MRP 9/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 9.0, "weight": "-", "shelf_life": "60", "moq": "30", "margin": 18.0, "billing_value": 7.38},
+                {"sno": "49", "name": "Chocolate Sensation 700ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 279.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 228.78},
+                {"sno": "50", "name": "Fruit & Nut 700ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 250.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 205.0},
+                {"sno": "51", "name": "Mango 700ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 145.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 118.9},
+                {"sno": "52", "name": "Butter Sctoch 700ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 160.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 131.2},
+                {"sno": "53", "name": "Shemless vanilla 700ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 145.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 118.9},
+                {"sno": "54", "name": "Oreo 700ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 325.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 266.5},
+                {"sno": "55", "name": "Kulfi 700ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 279.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 228.78},
+                {"sno": "56", "name": "Choco Brownie 700ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 295.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 241.9},
+                {"sno": "57", "name": "Cadbury Crackle (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 379.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 310.78},
+                {"sno": "58", "name": "Tub Milk Cake 500ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 325.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 266.5},
+                {"sno": "59", "name": "Tub Gulab Jamun 500ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 325.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 266.5},
+                {"sno": "60", "name": "Tender Coconut 700ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 249.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 204.18},
+                {"sno": "61", "name": "Hazelnut 500ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 325.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 266.5},
+                {"sno": "62", "name": "Majestic Kesar Pista 500ml (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 210.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 172.2},
+                {"sno": "63", "name": "SC CHIKOO 500ML (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 375.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 307.5},
+                {"sno": "64", "name": "SC JAMUN 500ML (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 375.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 307.5},
+                {"sno": "65", "name": "SC MANGO 500ML (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 375.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 307.5},
+                {"sno": "nan", "name": "SC MULBERRY 500ML (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 375.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 307.5},
+                {"sno": "nan", "name": "SC PINK GUAVA 500ML (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 375.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 307.5},
+                {"sno": "nan", "name": "SC STRAWBERRY 500ML (Carte DOR)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 375.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 307.5},
+                {"sno": "nan", "name": "Vanilla 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 99.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 81.18},
+                {"sno": "nan", "name": "Strawberry 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 125.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 102.5},
+                {"sno": "nan", "name": "Butter Scotch 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 150.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 123.0},
+                {"sno": "nan", "name": "Kesar Pista 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 185.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 151.7},
+                {"sno": "nan", "name": "Tutti Fruiti 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 150.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 123.0},
+                {"sno": "nan", "name": "Chocolate 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 150.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 123.0},
+                {"sno": "nan", "name": "Mango 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 155.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 127.1},
+                {"sno": "nan", "name": "Black Currant 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 165.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 135.3},
+                {"sno": "nan", "name": "Oreo PP New  700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 220.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 180.4},
+                {"sno": "nan", "name": "Kulfi 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 185.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 151.7},
+                {"sno": "nan", "name": "Gulab Jamun 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 240.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 196.8},
+                {"sno": "nan", "name": "Choco Brownie 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 179.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 146.78},
+                {"sno": "nan", "name": "American Nuts 700ml (Family Pack)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 169.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 138.57999999999998},
+                {"sno": "nan", "name": "Vanilla 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 500.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 410.0},
+                {"sno": "nan", "name": "Strawberry 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 500.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 410.0},
+                {"sno": "nan", "name": "Chocolate XS 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 600.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 492.0},
+                {"sno": "nan", "name": "Butter Scotch 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 600.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 492.0},
+                {"sno": "nan", "name": "Kesar Pista 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 700.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 574.0},
+                {"sno": "nan", "name": "Tutti Fruiti 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 500.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 410.0},
+                {"sno": "nan", "name": "Black Currant 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 700.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 574.0},
+                {"sno": "nan", "name": "Mango 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 600.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 492.0},
+                {"sno": "nan", "name": "American Nuts 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 700.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 574.0},
+                {"sno": "nan", "name": "Choco Brownie 4L (Gallon)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 900.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 738.0},
+                {"sno": "nan", "name": "Almond 80ml (Magnum)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 80.0, "weight": "-", "shelf_life": "60", "moq": "24", "margin": 18.0, "billing_value": 65.6},
+                {"sno": "nan", "name": "Chocolate Truffle  (Magnum)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "nan", "name": "Brownie 80ml (Magnum)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "60", "moq": "24", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "nan", "name": "Aamras Stick", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "365", "moq": "25", "margin": 18.0, "billing_value": 32.8},
+                {"sno": "nan", "name": "Dairy Vanilla 700ml B1G1", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 240.0, "weight": "-", "shelf_life": "365", "moq": "1", "margin": 18.0, "billing_value": 196.8},
+                {"sno": "nan", "name": "Chocochips PP New 700ml", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 145.0, "weight": "-", "shelf_life": "365", "moq": "1", "margin": 18.0, "billing_value": 118.9},
+                {"sno": "nan", "name": "Dairy Mango 700ml B1G1", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 300.0, "weight": "-", "shelf_life": "365", "moq": "1", "margin": 18.0, "billing_value": 246.0},
+                {"sno": "nan", "name": "Magnum Mini Almond", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 50.0, "weight": "-", "shelf_life": "365", "moq": "24", "margin": 18.0, "billing_value": 41.0},
+                {"sno": "nan", "name": "Magnum Mini Multipack", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 50.0, "weight": "-", "shelf_life": "365", "moq": "24", "margin": 18.0, "billing_value": 41.0},
+                {"sno": "nan", "name": "Nutty Bar", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 18.0, "weight": "-", "shelf_life": "365", "moq": "30", "margin": 18.0, "billing_value": 14.76},
+                {"sno": "nan", "name": "Rabri Kulfi", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 30.0, "weight": "-", "shelf_life": "365", "moq": "25", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "nan", "name": "Twister Mango", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 18.0, "weight": "-", "shelf_life": "365", "moq": "30", "margin": 18.0, "billing_value": 14.76},
+                {"sno": "nan", "name": "Twister Pineapple", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 18.0, "weight": "-", "shelf_life": "365", "moq": "30", "margin": 18.0, "billing_value": 14.76},
+                {"sno": "nan", "name": "Magnum Almond", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "365", "moq": "24", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "nan", "name": "Magnum Pistachio Sticks", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 90.0, "weight": "-", "shelf_life": "365", "moq": "12", "margin": 18.0, "billing_value": 73.8},
+                {"sno": "nan", "name": "Block - Oreo and Cream (700ml) Mrp 220/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 220.0, "weight": "-", "shelf_life": "100", "moq": "1", "margin": 18.0, "billing_value": 180.4},
+                {"sno": "nan", "name": "Strawberry Vanilla", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "100", "moq": "16", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "nan", "name": "Feast Cad Crackle", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "100", "moq": "20", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "nan", "name": "Dairy Butterscotch 700ml", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 280.0, "weight": "-", "shelf_life": "100", "moq": "1", "margin": 18.0, "billing_value": 229.6},
+                {"sno": "nan", "name": "Stick-Amras", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "100", "moq": "12", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "nan", "name": "Desi Kulfi (Cup) Rs 60", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 60.0, "weight": "-", "shelf_life": "90", "moq": "12", "margin": 18.0, "billing_value": 49.2},
+                {"sno": "nan", "name": "Block Butterscotch DF 700ml", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 125.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 102.5},
+                {"sno": "nan", "name": "Block Mango DF 700ml", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 135.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 110.7},
+                {"sno": "nan", "name": "Block Vanilla DF 700ml", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 105.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 86.1},
+                {"sno": "nan", "name": "Block Butter DF Rs 140", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 140.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 114.8},
+                {"sno": "nan", "name": "Block Chocochips DF Rs 160", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 160.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 131.2},
+                {"sno": "nan", "name": "Block Chocolate DF Rs 145", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 160.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 131.2},
+                {"sno": "nan", "name": "Block Vanilla DF Rs 120", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 120.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 98.4},
+                {"sno": "nan", "name": "Block Kesar Pista Rs 199", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 199.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 163.18},
+                {"sno": "nan", "name": "Block Golden Spoon Vanilla 700 ml", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 80.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 65.6},
+                {"sno": "nan", "name": "Fst Chocolate 70ml (Feast) Rs 35", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "90", "moq": "20", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "nan", "name": "Tub Dairy Chocochips", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 199.0, "weight": "-", "shelf_life": "90", "moq": "2", "margin": 18.0, "billing_value": 163.18},
+                {"sno": "nan", "name": "Cornetto Almond Crunch Mrp.45/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 45.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 36.9},
+                {"sno": "nan", "name": "STK CHOCOBAR MINI MRP 9/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 9.0, "weight": "-", "shelf_life": "60", "moq": "35", "margin": 18.0, "billing_value": 7.38},
+                {"sno": "nan", "name": "STK MANGO DUET Mrp 9/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 9.0, "weight": "-", "shelf_life": "60", "moq": "30", "margin": 18.0, "billing_value": 7.38},
+                {"sno": "nan", "name": "STK RAJWADI BITE Mrp 10/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "nan", "name": "STK ORANGE MAHABAR Mrp 9/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 9.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 7.38},
+                {"sno": "nan", "name": "Jaljeera Chuski Mrp 10/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "180", "moq": "25", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "nan", "name": "Choco Brownie Fudge Mrp 45/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 45.0, "weight": "-", "shelf_life": "180", "moq": "12", "margin": 18.0, "billing_value": 36.9},
+                {"sno": "nan", "name": "Golden Spoon Vanilla Mrp 70/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "180", "moq": "1", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "nan", "name": "Malai Kulfi Mrp 20/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "180", "moq": "18", "margin": 18.0, "billing_value": 16.4},
+                {"sno": "nan", "name": "Cornetto Strawberry Vanilla Mrp. 35/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "180", "moq": "16", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "nan", "name": "Kesar Kulfi Mrp.40/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 40.0, "weight": "-", "shelf_life": "180", "moq": "18", "margin": 18.0, "billing_value": 32.8},
+                {"sno": "nan", "name": "Shahi Rabri Kulfi Mrp 30/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 30.0, "weight": "-", "shelf_life": "180", "moq": "18", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "nan", "name": "Black currant Duet Mrp 10/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "90", "moq": "30", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "nan", "name": "Orange Chuski Mrp 09/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 9.0, "weight": "-", "shelf_life": "90", "moq": "25", "margin": 18.0, "billing_value": 7.38},
+                {"sno": "nan", "name": "Tub Dairy Factory Mango Mrp 160", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 160.0, "weight": "-", "shelf_life": "90", "moq": "2", "margin": 18.0, "billing_value": 131.2},
+                {"sno": "nan", "name": "Tub Dairy Factory Vanilla Mrp 145", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 145.0, "weight": "-", "shelf_life": "90", "moq": "2", "margin": 18.0, "billing_value": 118.9},
+                {"sno": "nan", "name": "Sticks - Amm Panna Mrp 9/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 9.0, "weight": "-", "shelf_life": "90", "moq": "25", "margin": 18.0, "billing_value": 7.38},
+                {"sno": "nan", "name": "Cornetto Snackers Mrp 22", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 22.0, "weight": "-", "shelf_life": "90", "moq": "27", "margin": 18.0, "billing_value": 18.04},
+                {"sno": "nan", "name": "Family Pack Kesar Bhog 700ml Mrp- 235/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 235.0, "weight": "-", "shelf_life": "90", "moq": "1", "margin": 18.0, "billing_value": 192.7},
+                {"sno": "nan", "name": "Tub- Kesar Bhog Mrp 250/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 250.0, "weight": "-", "shelf_life": "90", "moq": "2", "margin": 18.0, "billing_value": 205.0},
+                {"sno": "nan", "name": "STK CHOCOBAR MINI MRP 10/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "90", "moq": "35", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "nan", "name": "STK MANGO DUET Mrp 10/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "90", "moq": "30", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "nan", "name": "Cor Choco cone (Cornetto) MRP 10/-", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "90", "moq": "30", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "nan", "name": "CUP- BUTTERSCOTCH", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 30.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "nan", "name": "STICKS- CHOCO BAR- BIG", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 18.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 14.76},
+                {"sno": "nan", "name": "STICKS- AAMRAS", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "nan", "name": "STICKS- FEAST CHOCOLATE", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 35.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 28.7},
+                {"sno": "nan", "name": "STICKS- MALAI KULFI", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "60", "moq": "18", "margin": 18.0, "billing_value": 16.4},
+                {"sno": "nan", "name": "STICKS- SHAMI RABDI KULFI", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 30.0, "weight": "-", "shelf_life": "60", "moq": "18", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "nan", "name": "BLOCK- MANGO ICE CREAM (700ML)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 135.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 110.7},
+                {"sno": "nan", "name": "STICKS- MANGO DUET", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "30", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "nan", "name": "STICKS-ORANGE MAHABAR", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "25", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "nan", "name": "CORNETTO-DISC OREO", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "nan", "name": "TUB-CADBERRY CRACKLE", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 139.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 113.98},
+                {"sno": "nan", "name": "TUB-OREO AND CREAM", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 290.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 237.8},
+                {"sno": "nan", "name": "MAGNUM CARAMEL", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 70.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 57.4},
+                {"sno": "nan", "name": "MAGNUM CHOCOLATE TRUFFLE", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 80.0, "weight": "-", "shelf_life": "60", "moq": "12", "margin": 18.0, "billing_value": 65.6},
+                {"sno": "nan", "name": "CORNETTO- CRUNCHY CHOCOLATE", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 22.0, "weight": "-", "shelf_life": "60", "moq": "27", "margin": 18.0, "billing_value": 18.04},
+                {"sno": "nan", "name": "Cornetto - Choco Vanilla", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 30.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "nan", "name": "CUP BUTTER SCOTCH", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 30.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 24.6},
+                {"sno": "nan", "name": "Block - Shahi Rabdi Kulfi (500ml)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 135.0, "weight": "-", "shelf_life": "60", "moq": "1", "margin": 18.0, "billing_value": 110.7},
+                {"sno": "nan", "name": "sticks - choco bar (rs.20)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "60", "moq": "20", "margin": 18.0, "billing_value": 16.4},
+                {"sno": "nan", "name": "sticks - nutty bar (rs.20)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 20.0, "weight": "-", "shelf_life": "60", "moq": "30", "margin": 18.0, "billing_value": 16.4},
+                {"sno": "nan", "name": "cornetto - magnum almond (rs.90", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 90.0, "weight": "-", "shelf_life": "60", "moq": "16", "margin": 18.0, "billing_value": 73.8},
+                {"sno": "nan", "name": "cornetto - small butter scotch (rs.10)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 10.0, "weight": "-", "shelf_life": "60", "moq": "30", "margin": 18.0, "billing_value": 8.2},
+                {"sno": "nan", "name": "tub - dairy butter scotch (rs.160)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 160.0, "weight": "-", "shelf_life": "1", "moq": "2", "margin": 18.0, "billing_value": 131.2},
+                {"sno": "nan", "name": "tub - Hawaiian Nuts Sundae (rs.275)", "brand": "KWALITY WALLS", "uom": "PC", "mrp": 275.0, "weight": "-", "shelf_life": "60", "moq": "2", "margin": 18.0, "billing_value": 225.5}
+            ]
+        };
+
+        // =====================================================================
+        // SHARED BACKEND SYNC (fixes: admin update on one device not showing
+        // up on other devices). Data now lives in a Google Sheet via Apps
+        // Script, and localStorage is only used as an offline fallback/cache.
+        // Paste your deployed Apps Script Web App URL below (ends in /exec).
+        // =====================================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbx3Y-RrE-iHa4UIKVyvaJQQMA26G1XQNjfPQSwdNnVJh6DTP-OlkD1c2E8fud4oUPa6EQ/exec";
+
+        let catalogData = JSON.parse(localStorage.getItem('fmcg_full_catalog_data') || JSON.stringify(initialCatalogData));
+        let savedImages = JSON.parse(localStorage.getItem('fmcg_global_images') || '{}');
+        let productStocks = JSON.parse(localStorage.getItem('fmcg_product_stocks') || '{}');
+
+        let activeCategory = Object.keys(catalogData)[0] || "CHOCOLATE";
+        let cart = {};
+        
+        let currentUser = JSON.parse(localStorage.getItem('fmcg_current_user') || 'null');
+        let registeredUsers = JSON.parse(localStorage.getItem('fmcg_registered_users') || '{}');
+        let adminUsers = JSON.parse(localStorage.getItem('fmcg_admin_users') || '{"admin123": "admin", "masteradmin": "master123"}');
+        let currentAdminUser = localStorage.getItem('fmcg_current_admin') || null;
+        let isMasterAdmin = currentAdminUser === 'masteradmin';
+        let isAdmin = !!currentAdminUser;
+
+        // Push updated data (only the keys you pass) to the shared backend.
+        // Also mirrors into localStorage so the app still works offline.
+        function syncToServer(partialData) {
+            if (!API_URL || API_URL.indexOf('PASTE_YOUR') === 0) {
+                console.warn('API_URL not configured yet — changes are only saved on this device.');
+                return;
+            }
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight
+                body: JSON.stringify(partialData)
+            }).catch(err => {
+                console.error('Sync failed, changes saved locally only:', err);
+                alert('⚠️ Internet/server issue: change saved on THIS device only. It will not be visible on other devices until sync succeeds. Please check your connection and try again.');
+            });
+        }
+
+        // Load the shared dataset from the backend before first render.
+        // Falls back to whatever is in localStorage/defaults if offline.
+        async function loadFromServer() {
+            if (!API_URL || API_URL.indexOf('PASTE_YOUR') === 0) {
+                console.warn('API_URL not configured — using local data only (will not sync across devices).');
+                return;
+            }
+            try {
+                const res = await fetch(API_URL, { method: 'GET' });
+                const json = await res.json();
+                if (json.success && json.data) {
+                    const d = json.data;
+                    if (d.catalogData) { catalogData = d.catalogData; localStorage.setItem('fmcg_full_catalog_data', JSON.stringify(catalogData)); }
+                    if (d.savedImages) { savedImages = d.savedImages; localStorage.setItem('fmcg_global_images', JSON.stringify(savedImages)); }
+                    if (d.productStocks) { productStocks = d.productStocks; localStorage.setItem('fmcg_product_stocks', JSON.stringify(productStocks)); }
+                    if (d.adminUsers) { adminUsers = d.adminUsers; localStorage.setItem('fmcg_admin_users', JSON.stringify(adminUsers)); }
+                    if (d.registeredUsers) { registeredUsers = d.registeredUsers; localStorage.setItem('fmcg_registered_users', JSON.stringify(registeredUsers)); }
+                    activeCategory = Object.keys(catalogData)[0] || activeCategory;
+                } else if (json.success && !json.data.catalogData) {
+                    // Sheet is empty (first run ever) — seed it with current local data.
+                    syncToServer({ catalogData, savedImages, productStocks, adminUsers, registeredUsers });
+                }
+            } catch (err) {
+                console.error('Could not reach server, showing locally cached data:', err);
+            }
+        }
+
+        async function initCatalog() {
+            await loadFromServer();
+            updateUserDisplay();
+            renderTabs();
+            renderProducts();
+        }
+
+        function updateUserDisplay() {
+            const display = document.getElementById('user-status-display');
+            const adminToolbar = document.getElementById('admin-toolbar');
+            const masterPanel = document.getElementById('master-admin-panel');
+
+            if (isAdmin) {
+                display.innerText = isMasterAdmin ? "Mode: Master Admin" : "Mode: Administrator";
+                adminToolbar.classList.remove('hidden');
+                if (isMasterAdmin) {
+                    masterPanel.classList.remove('hidden');
+                } else {
+                    masterPanel.classList.add('hidden');
+                }
+            } else if (currentUser) {
+                display.innerText = "Logged in as: " + currentUser;
+                adminToolbar.classList.add('hidden');
+                masterPanel.classList.add('hidden');
+            } else {
+                display.innerText = "Mode: Guest User (Login to order)";
+                adminToolbar.classList.add('hidden');
+                masterPanel.classList.add('hidden');
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-modal').classList.toggle('active');
+        }
+
+        function toggleAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function switchAuthTab(tab) {
+            const btnAdmin = document.getElementById('tab-admin');
+            const btnUser = document.getElementById('tab-user');
+            const formAdmin = document.getElementById('form-admin');
+            const formUser = document.getElementById('form-user');
+            document.getElementById('auth-status-msg').innerText = '';
+
+            if (tab === 'admin') {
+                btnAdmin.className = "flex-1 py-2 rounded transition bg-white text-[#ff3864] shadow-sm";
+                btnUser.className = "flex-1 py-2 rounded transition text-gray-600";
+                formAdmin.classList.remove('hidden');
+                formUser.classList.add('hidden');
+            } else {
+                btnUser.className = "flex-1 py-2 rounded transition bg-white text-[#ff3864] shadow-sm";
+                btnAdmin.className = "flex-1 py-2 rounded transition text-gray-600";
+                formUser.classList.remove('hidden');
+                formAdmin.classList.add('hidden');
+            }
+        }
+
+        function loginAdmin() {
+            const username = document.getElementById('admin-user-input').value.trim();
+            const pass = document.getElementById('admin-pass-input').value.trim();
+            const msg = document.getElementById('auth-status-msg');
+
+            if (adminUsers[username] && adminUsers[username] === pass) {
+                isAdmin = true;
+                currentAdminUser = username;
+                isMasterAdmin = (username === 'masteradmin');
+                currentUser = null;
+                localStorage.setItem('fmcg_is_admin', 'true');
+                localStorage.setItem('fmcg_current_admin', username);
+                localStorage.removeItem('fmcg_current_user');
+                msg.className = "mt-3 text-xs font-medium text-center text-green-600";
+                msg.innerText = "Admin Login Successful!";
+                setTimeout(() => {
+                    toggleAuthModal();
+                    initCatalog();
+                }, 800);
+            } else {
+                msg.className = "mt-3 text-xs font-medium text-center text-red-600";
+                msg.innerText = "Invalid Username or Password!";
+            }
+        }
+
+        function logout() {
+            if(confirm("Do you want to logout?")) {
+                isAdmin = false;
+                isMasterAdmin = false;
+                currentAdminUser = null;
+                currentUser = null;
+                localStorage.removeItem('fmcg_is_admin');
+                localStorage.removeItem('fmcg_current_admin');
+                localStorage.removeItem('fmcg_current_user');
+                initCatalog();
+            }
+        }
+
+        function addNewAdmin() {
+            const newU = document.getElementById('new-admin-user').value.trim();
+            const newP = document.getElementById('new-admin-pass').value.trim();
+            const msg = document.getElementById('master-msg');
+            if(!newU || !newP) {
+                msg.className = "text-xs font-medium text-red-600";
+                msg.innerText = "Enter username and password.";
+                return;
+            }
+            adminUsers[newU] = newP;
+            localStorage.setItem('fmcg_admin_users', JSON.stringify(adminUsers));
+            syncToServer({ adminUsers });
+            msg.className = "text-xs font-medium text-green-600";
+            msg.innerText = `New Admin '${newU}' created successfully!`;
+            document.getElementById('new-admin-user').value = '';
+            document.getElementById('new-admin-pass').value = '';
+        }
+
+        function changeMasterPassword() {
+            const newPass = document.getElementById('master-new-pass').value.trim();
+            const msg = document.getElementById('master-pass-msg');
+            if(!newPass) {
+                msg.className = "text-xs font-medium text-red-600";
+                msg.innerText = "Please enter a new password.";
+                return;
+            }
+            adminUsers['masteradmin'] = newPass;
+            localStorage.setItem('fmcg_admin_users', JSON.stringify(adminUsers));
+            syncToServer({ adminUsers });
+            msg.className = "text-xs font-medium text-green-600";
+            msg.innerText = "Master Admin password updated successfully!";
+            document.getElementById('master-new-pass').value = '';
+        }
+
+        function registerUser() {
+            const id = document.getElementById('user-id-input').value.trim();
+            const pass = document.getElementById('user-pass-input').value.trim();
+            const msg = document.getElementById('auth-status-msg');
+            if (!id || !pass) {
+                msg.className = "mt-3 text-xs font-medium text-center text-red-600";
+                msg.innerText = "Please enter both User ID and Password.";
+                return;
+            }
+            if (registeredUsers[id]) {
+                msg.className = "mt-3 text-xs font-medium text-center text-red-600";
+                msg.innerText = "User ID already exists! Please login.";
+                return;
+            }
+            registeredUsers[id] = pass;
+            localStorage.setItem('fmcg_registered_users', JSON.stringify(registeredUsers));
+            syncToServer({ registeredUsers });
+            msg.className = "mt-3 text-xs font-medium text-center text-green-600";
+            msg.innerText = "Registration successful! You can now login.";
+        }
+
+        function loginUser() {
+            const id = document.getElementById('user-id-input').value.trim();
+            const pass = document.getElementById('user-pass-input').value.trim();
+            const msg = document.getElementById('auth-status-msg');
+            if (registeredUsers[id] && registeredUsers[id] === pass) {
+                currentUser = id;
+                isAdmin = false;
+                currentAdminUser = null;
+                localStorage.setItem('fmcg_current_user', JSON.stringify(id));
+                localStorage.removeItem('fmcg_is_admin');
+                localStorage.removeItem('fmcg_current_admin');
+                msg.className = "mt-3 text-xs font-medium text-center text-green-600";
+                msg.innerText = "Welcome back, " + id + "!";
+                setTimeout(() => {
+                    toggleAuthModal();
+                    initCatalog();
+                }, 800);
+            } else {
+                msg.className = "mt-3 text-xs font-medium text-center text-red-600";
+                msg.innerText = "Invalid User ID or Password.";
+            }
+        }
+
+        function renderTabs() {
+            const tabsContainer = document.getElementById('category-tabs');
+            const sidebarContainer = document.getElementById('sidebar-links-container');
+            tabsContainer.innerHTML = '';
+            sidebarContainer.innerHTML = '';
+
+            Object.keys(catalogData).forEach(cat => {
+                const isActive = cat === activeCategory;
+                const count = (catalogData[cat] || []).length;
+                
+                const btn = document.createElement('button');
+                btn.className = `category-btn ${isActive ? 'active' : ''}`;
+                btn.innerHTML = `<span>${cat.replace(/-/g, ' ')}</span> <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-white text-[#ff3864]' : 'bg-[#ffe3e9] text-[#ff3864]'}">${count}</span>`;
+                btn.onclick = () => {
+                    activeCategory = cat;
+                    document.getElementById('current-category-title').innerText = cat.replace(/-/g, ' ');
+                    renderTabs();
+                    renderProducts();
+                };
+                tabsContainer.appendChild(btn);
+
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#" onclick="filterCategory('${cat}'); toggleMenu();">${cat.replace(/-/g, ' ')} (${count})</a>`;
+                sidebarContainer.appendChild(li);
+            });
+            
+            if(isAdmin) {
+                const logoutLi = document.createElement('li');
+                logoutLi.innerHTML = `<a href="#" style="margin-top: 20px; border-top: 1px solid #ff7592; padding-top:20px;" onclick="logout(); toggleMenu();">Logout (${currentAdminUser})</a>`;
+                sidebarContainer.appendChild(logoutLi);
+            }
+        }
+
+        function filterCategory(cat) {
+            activeCategory = cat;
+            document.getElementById('current-category-title').innerText = cat.replace(/-/g, ' ');
+            renderTabs();
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            grid.innerHTML = '';
+
+            let items = catalogData[activeCategory] || [];
+            if (searchQuery) {
+                items = [];
+                Object.keys(catalogData).forEach(cat => {
+                    (catalogData[cat] || []).forEach(item => {
+                        if (item.name.toLowerCase().includes(searchQuery) || item.brand.toLowerCase().includes(searchQuery)) {
+                            items.push({...item, category: cat});
+                        }
+                    });
+                });
+            }
+
+            if (items.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+            }
+
+            items.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                const itemKey = item.brand + '_' + item.name;
+                const currentImg = savedImages[itemKey] || '';
+                const stockKey = itemKey + '_stock';
+                const currentStock = productStocks[stockKey] !== undefined ? productStocks[stockKey] : 100;
+
+                let adminControls = '';
+                if (isAdmin) {
+                    adminControls = `
+                        <div class="mt-3 pt-3 border-t border-pink-100 space-y-2 bg-pink-50 p-2.5 rounded-lg text-left">
+                            <label class="block text-[11px] font-bold text-[#ff3864]">[Admin] Edit & Stock:</label>
+                            <div>
+                                <span class="text-[10px] text-gray-500">Photo URL:</span>
+                                <input type="text" value="${currentImg}" onchange="setGlobalImage(event, '${item.brand}', '${item.name.replace(/'/g, "\\\\'")}')" class="w-full px-2 py-1 bg-white border rounded text-xs">
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <div>
+                                    <span class="text-[10px] text-gray-500">MRP:</span>
+                                    <input type="number" value="${item.mrp}" onchange="updateProductField(event, '${item.name}', 'mrp')" class="w-full px-1.5 py-1 bg-white border rounded text-xs">
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-gray-500">Bill Val:</span>
+                                    <input type="number" value="${item.billing_value}" onchange="updateProductField(event, '${item.name}', 'billing_value')" class="w-full px-1.5 py-1 bg-white border rounded text-xs">
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-gray-500">Stock:</span>
+                                    <input type="number" value="${currentStock}" onchange="updateStock(event, '${item.brand}', '${item.name}')" class="w-full px-1.5 py-1 bg-white border rounded text-xs font-bold text-green-600">
+                                </div>
+                            </div>
+                            <div class="flex justify-end pt-1">
+                                <button onclick="deleteProduct('${item.name}')" class="text-red-600 hover:text-red-800 text-[11px] font-semibold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Delete</span></button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-semibold px-2 py-0.5 bg-[#ffe3e9] text-[#ff3864] rounded-md">${item.brand}</span>
+                            <span class="text-xs font-medium text-gray-500">${item.uom}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-start mb-2 gap-2 text-left">
+                            <h3 class="product-name line-clamp-2">${item.name} <span class="text-gray-500 font-normal text-sm">₹${item.mrp}</span></h3>
+                            <div class="text-right flex-shrink-0">
+                                <span class="product-price block">₹${item.billing_value}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            ${currentImg ? `<img src="${currentImg}" class="product-img object-cover">` : '<div class="product-img flex items-center justify-center text-xs"><i class="fa-solid fa-image text-xl mr-2"></i>No Photo</div>'}
+                        </div>
+
+                        <div class="mb-3 flex items-center justify-between bg-green-50 px-2.5 py-1 rounded border border-green-100 text-xs text-green-800 font-medium">
+                            <span><i class="fa-solid fa-boxes-stacked mr-1"></i> Stock:</span>
+                            <span class="font-bold text-green-700">${currentStock}</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-2 bg-[#fffafb] p-2 rounded-lg text-left border border-[#ffe3e9]">
+                            <div>Weight: <span class="font-medium text-gray-800">${item.weight}</span></div>
+                            <div>Shelf Life: <span class="font-medium text-gray-800">${item.shelf_life}</span></div>
+                            <div>MOQ: <span class="font-medium text-gray-800">${item.moq}</span></div>
+                            <div>Margin: <span class="font-medium text-green-600">${item.margin}%</span></div>
+                        </div>
+
+                        ${adminControls}
+                    </div>
+                    <div class="mt-3">
+                        <button onclick="addToCart('${item.name.replace(/'/g, "\\\\'")}', ${item.billing_value}, ${item.mrp}, '${item.brand}', '${item.uom}', '${currentImg}')" 
+                            class="add-cart-btn flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cart-plus"></i>
+                            <span>Add to Order</span>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function setGlobalImage(event, brand, name) {
+            const url = event.target.value.trim();
+            const itemKey = brand + '_' + name;
+            if (url) {
+                savedImages[itemKey] = url;
+            } else {
+                delete savedImages[itemKey];
+            }
+            localStorage.setItem('fmcg_global_images', JSON.stringify(savedImages));
+            syncToServer({ savedImages });
+            renderProducts();
+        }
+
+        function updateStock(event, brand, name) {
+            const val = parseInt(event.target.value) || 0;
+            const stockKey = brand + '_' + name + '_stock';
+            productStocks[stockKey] = val;
+            localStorage.setItem('fmcg_product_stocks', JSON.stringify(productStocks));
+            syncToServer({ productStocks });
+            renderProducts();
+        }
+
+        function updateProductField(event, itemName, field) {
+            const val = parseFloat(event.target.value) || 0;
+            for (let cat in catalogData) {
+                let prod = (catalogData[cat] || []).find(p => p.name === itemName);
+                if (prod) {
+                    prod[field] = val;
+                    break;
+                }
+            }
+            localStorage.setItem('fmcg_full_catalog_data', JSON.stringify(catalogData));
+            syncToServer({ catalogData });
+            renderProducts();
+        }
+
+        function deleteProduct(itemName) {
+            if (confirm(`Are you sure you want to delete ${itemName}?`)) {
+                for (let cat in catalogData) {
+                    catalogData[cat] = (catalogData[cat] || []).filter(p => p.name !== itemName);
+                }
+                localStorage.setItem('fmcg_full_catalog_data', JSON.stringify(catalogData));
+                syncToServer({ catalogData });
+                renderTabs();
+                renderProducts();
+            }
+        }
+
+        function openAddCategoryModal() {
+            document.getElementById('add-cat-modal').style.display = 'flex';
+        }
+
+        function closeAddCategoryModal() {
+            document.getElementById('add-cat-modal').style.display = 'none';
+        }
+
+        function saveNewCategory() {
+            const name = document.getElementById('new-cat-name').value.trim().toUpperCase();
+            if (!name) { alert("Enter category name"); return; }
+            if (catalogData[name]) { alert("Category already exists"); return; }
+            catalogData[name] = [];
+            localStorage.setItem('fmcg_full_catalog_data', JSON.stringify(catalogData));
+            syncToServer({ catalogData });
+            closeAddCategoryModal();
+            activeCategory = name;
+            renderTabs();
+            renderProducts();
+        }
+
+        function openAddProductModal() {
+            const select = document.getElementById('new-prod-cat');
+            select.innerHTML = '';
+            Object.keys(catalogData).forEach(cat => {
+                let opt = document.createElement('option');
+                opt.value = cat;
+                opt.innerText = cat;
+                select.appendChild(opt);
+            });
+            document.getElementById('add-product-modal').style.display = 'flex';
+        }
+
+        function closeAddProductModal() {
+            document.getElementById('add-product-modal').style.display = 'none';
+        }
+
+        function saveNewProduct() {
+            const cat = document.getElementById('new-prod-cat').value;
+            const name = document.getElementById('new-prod-name').value.trim();
+            const brand = document.getElementById('new-prod-brand').value.trim() || 'N/A';
+            const mrp = parseFloat(document.getElementById('new-prod-mrp').value) || 0;
+            const bill = parseFloat(document.getElementById('new-prod-bill').value) || 0;
+            const stock = parseInt(document.getElementById('new-prod-stock').value) || 100;
+            const wt = document.getElementById('new-prod-wt').value.trim() || '-';
+            const shelf = document.getElementById('new-prod-shelf').value.trim() || '-';
+            const moq = document.getElementById('new-prod-moq').value.trim() || '1';
+            const img = document.getElementById('new-prod-img').value.trim();
+
+            if (!name) { alert("Enter product name"); return; }
+
+            const newProd = {
+                sno: String((catalogData[cat] || []).length + 1),
+                name: name,
+                brand: brand,
+                uom: "PC",
+                mrp: mrp,
+                weight: wt,
+                shelf_life: shelf,
+                moq: moq,
+                margin: mrp > 0 ? parseFloat((((mrp - bill) / mrp) * 100).toFixed(1)) : 0,
+                billing_value: bill
+            };
+
+            if (!catalogData[cat]) catalogData[cat] = [];
+            catalogData[cat].push(newProd);
+            localStorage.setItem('fmcg_full_catalog_data', JSON.stringify(catalogData));
+
+            if (img) {
+                const itemKey = brand + '_' + name;
+                savedImages[itemKey] = img;
+                localStorage.setItem('fmcg_global_images', JSON.stringify(savedImages));
+            }
+
+            const stockKey = brand + '_' + name + '_stock';
+            productStocks[stockKey] = stock;
+            localStorage.setItem('fmcg_product_stocks', JSON.stringify(productStocks));
+
+            // One combined sync call — sends new product + its photo + its stock together
+            syncToServer({ catalogData, savedImages, productStocks });
+
+            closeAddProductModal();
+            activeCategory = cat;
+            renderTabs();
+            renderProducts();
+            alert("Product added successfully!");
+        }
+
+        function filterProducts() {
+            renderProducts();
+        }
+
+        function addToCart(name, billingValue, mrp, brand, uom, imageUrl) {
+            if (!currentUser && !isAdmin) {
+                alert("Please login with your User ID & Password (or as Admin) to add items to your order cart!");
+                toggleAuthModal();
+                return;
+            }
+            if (cart[name]) {
+                cart[name].qty += 1;
+                if (imageUrl) cart[name].image = imageUrl;
+            } else {
+                cart[name] = { name, billingValue, mrp, brand, uom, qty: 1, image: imageUrl };
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items');
+            container.innerHTML = '';
+            let totalItems = 0;
+            let totalBilling = 0;
+
+            const keys = Object.keys(cart);
+            document.getElementById('cart-count').innerText = keys.length;
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Your order cart is empty.</p>';
+            } else {
+                keys.forEach(key => {
+                    const item = cart[key];
+                    totalItems += item.qty;
+                    totalBilling += item.billingValue * item.qty;
+
+                    const div = document.createElement('div');
+                    div.className = 'cart-item';
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-3 pr-2">
+                            ${item.image ? `<img src="${item.image}" class="w-10 h-10 object-cover rounded border">` : '<div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs"><i class="fa-solid fa-image"></i></div>'}
+                            <div class="cart-item-info text-left">
+                                <h4>${item.name}</h4>
+                                <p>₹${item.billingValue} x ${item.qty}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="changeQty('${key}', -1)" class="w-7 h-7 bg-gray-100 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center font-bold text-xs">-</button>
+                            <span class="text-sm font-semibold w-6 text-center">${item.qty}</span>
+                            <button onclick="changeQty('${key}', 1)" class="w-7 h-7 bg-gray-100 hover:bg-gray-200 rounded text-gray-600 flex items-center justify-center font-bold text-xs">+</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            document.getElementById('cart-total').innerText = '₹' + totalBilling.toFixed(2);
+        }
+
+        function changeQty(name, delta) {
+            if (cart[name]) {
+                cart[name].qty += delta;
+                if (cart[name].qty <= 0) {
+                    delete cart[name];
+                }
+                updateCartUI();
+            }
+        }
+
+        function checkoutOrder() {
+            const keys = Object.keys(cart);
+            if (keys.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            let summary = "--- KREAMZ WHOLESALE ORDER QUOTATION ---\nOrdered By: " + (currentUser || currentAdminUser || 'Admin') + "\n\n";
+            let total = 0;
+            keys.forEach(key => {
+                let item = cart[key];
+                let lineTotal = item.billingValue * item.qty;
+                total += lineTotal;
+                summary += item.name + " (" + item.brand + ") - Qty: " + item.qty + " x ₹" + item.billingValue + " = ₹" + lineTotal.toFixed(2) + "\n";
+            });
+            summary += "\nTOTAL BILLING VALUE: ₹" + total.toFixed(2);
+            alert(summary);
+        }
+
+        window.onload = function() { initCatalog(); };
+    </script>
+</body>
+</html>
